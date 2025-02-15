@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35527.113 d17.12
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoeStoreAPI", "MoeStoreAPI\MoeStoreAPI.csproj", "{FFE2E3D7-9B50-4E20-815B-BD620D19B390}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoeStore.Entities", "MoeStore.Entities\MoeStore.Entities.csproj", "{919FC84A-9A99-4CF6-A3BA-92E3DF81C52B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoeStore.Services", "MoeStore.Services\MoeStore.Services.csproj", "{BA946ECF-450D-4B60-A65F-C6C55DAE4B03}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FFE2E3D7-9B50-4E20-815B-BD620D19B390}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FFE2E3D7-9B50-4E20-815B-BD620D19B390}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FFE2E3D7-9B50-4E20-815B-BD620D19B390}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FFE2E3D7-9B50-4E20-815B-BD620D19B390}.Release|Any CPU.Build.0 = Release|Any CPU
+		{919FC84A-9A99-4CF6-A3BA-92E3DF81C52B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{919FC84A-9A99-4CF6-A3BA-92E3DF81C52B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{919FC84A-9A99-4CF6-A3BA-92E3DF81C52B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{919FC84A-9A99-4CF6-A3BA-92E3DF81C52B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA946ECF-450D-4B60-A65F-C6C55DAE4B03}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA946ECF-450D-4B60-A65F-C6C55DAE4B03}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA946ECF-450D-4B60-A65F-C6C55DAE4B03}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA946ECF-450D-4B60-A65F-C6C55DAE4B03}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

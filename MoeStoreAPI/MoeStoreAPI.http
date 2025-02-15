@@ -1,0 +1,6 @@
+@MoeStoreAPI_HostAddress = http://localhost:5188
+
+GET {{MoeStoreAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
