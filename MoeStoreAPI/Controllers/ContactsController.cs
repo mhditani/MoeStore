@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using MoeStore.Entities.DB;
 using MoeStore.Entities.Models;
 using MoeStore.Entities.Models.DTO;
+using MoeStore.Services;
 using MoeStore.Services.Repository.IRepository;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -18,13 +19,15 @@ namespace MoeStoreAPI.Controllers
         private readonly IMapper mapper;
         private readonly ISubjectRepo subjectRepo;
         private readonly ApplicationDbContext db;
+        private readonly EmailSender emailSender;
 
-        public ContactsController(IContactRepo repo, IMapper mapper, ISubjectRepo subjectRepo, ApplicationDbContext db)
+        public ContactsController(IContactRepo repo, IMapper mapper, ISubjectRepo subjectRepo, ApplicationDbContext db, EmailSender emailSender)
         {
             this.repo = repo;
             this.mapper = mapper;
             this.subjectRepo = subjectRepo;
             this.db = db;
+            this.emailSender = emailSender;
         }
 
         [HttpGet("subjects")]
@@ -35,11 +38,29 @@ namespace MoeStoreAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetContacts()
+        public async Task<IActionResult> GetContacts(int? page = 1, int pageSize = 5)
         {
-            var contactsDomain = await repo.GetAllAsync();
-            return Ok(mapper.Map<IEnumerable<ContactDto>>(contactsDomain));
+            if (page < 1) page = 1;
+
+            var (contactsDomain, totalCount) = await repo.GetAllAsync(page.Value, pageSize);
+            var contactsDto = mapper.Map<IEnumerable<ContactDto>>(contactsDomain);
+
+            var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+            var response = new
+            {
+                Contacts = contactsDto,
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                TotalPages = totalPages,
+                HasNextPage = page < totalPages,
+                HasPreviousPage = page > 1
+            };
+
+            return Ok(response);
         }
+
 
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetContact([FromRoute] int id)
@@ -71,6 +92,18 @@ namespace MoeStoreAPI.Controllers
             contactDomain.Subject = subject; // Explicitly set Subject
 
             await repo.CreateAsync(contactDomain);
+
+            // send confirmation email
+            string emailSubject = "Contact Information";
+            string username = createContactDto.FirstName + " " + createContactDto.LastName;
+            string emailMessage = "Dear " + username + "\n" +
+                "we recieved your message. Thank you for contacting us.\n" +
+                "Our team will contact you very soon.\n" +
+                "Best Regards\n\n" +
+                "Your Message:\n" + createContactDto.Message;
+
+            emailSender.SendEmail(emailSubject, contactDomain.Email, username, emailMessage).Wait();
+
             return Ok(mapper.Map<ContactDto>(contactDomain));
         }
 

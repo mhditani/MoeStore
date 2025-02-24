@@ -35,10 +35,23 @@ namespace MoeStore.Services.Repository
             return existingContact;
         }
 
-        public async Task<List<Contact>> GetAllAsync()
+        public async Task<(List<Contact> Contacts, int TotalCount)> GetAllAsync(int page, int pageSize)
         {
-            return await db.Contacts.Include(c => c.Subject).ToListAsync(); // ✅ Fix: Include Subject
+            if (page < 1) page = 1; // Ensure valid page number
+
+            int totalCount = await db.Contacts.CountAsync(); // Use async count
+            int totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+            var contacts = await db.Contacts
+                .Include(c => c.Subject)
+                .OrderByDescending(c => c.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (contacts, totalCount);
         }
+
 
         public async Task<Contact?> GetByIdAsyn(int id)
         {

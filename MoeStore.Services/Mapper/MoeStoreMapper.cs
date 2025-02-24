@@ -18,6 +18,13 @@ namespace MoeStore.Services.Mapper
 
             CreateMap<UpdateContactDto, Contact>()
                 .ForMember(dest => dest.Subject, opt => opt.Ignore());
+
+            CreateMap<Product, ProductDto>()
+                .ForMember(dest => dest.ImageFile, opt => opt.Ignore()) // Ignore because it's a file, not a string
+                .ReverseMap()
+                .ForMember(dest => dest.ImageFileName, opt => opt.MapFrom(src =>
+                    src.ImageFile != null ? src.ImageFile.FileName : null)); // Extract filename if file is provided
+
         }
     }
 }

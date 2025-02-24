@@ -10,7 +10,12 @@ namespace MoeStore.Services.Repository.IRepository
     
     public interface IContactRepo
     {
-        Task<List<Contact>> GetAllAsync();
+        //Task<List<Contact>> GetAllAsync(int? page);
+
+      
+       Task<(List<Contact> Contacts, int TotalCount)> GetAllAsync(int page, int pageSize);
+        
+
 
         Task<Contact?> GetByIdAsyn(int id);
 
