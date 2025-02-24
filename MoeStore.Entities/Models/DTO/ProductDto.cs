@@ -23,7 +23,6 @@ namespace MoeStore.Entities.Models.DTO
         public decimal Price { get; set; }
         [MaxLength(4000)]
         public string? Description { get; set; } 
-        [MaxLength(100)]
 
         public IFormFile? ImageFile { get; set; } 
     }
