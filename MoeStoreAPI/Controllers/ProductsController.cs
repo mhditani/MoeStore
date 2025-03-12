@@ -14,6 +14,10 @@ namespace MoeStoreAPI.Controllers
         private readonly IProductRepo repo;
         private readonly IMapper mapper;
         private readonly IWebHostEnvironment env;
+        private readonly List<string> listCategories = new List<string>()
+        {
+            "Phones", "Computers", "Accessories", "Printers", "Cameras", "Other"
+        };
 
         public ProductsController(IProductRepo repo, IMapper mapper, IWebHostEnvironment env)
         {
@@ -23,13 +27,37 @@ namespace MoeStoreAPI.Controllers
         }
 
 
-        [HttpGet]
-        public async Task<IActionResult> GetAllProduct()
+        [HttpGet("categories")]
+        public  IActionResult GetCategories()
         {
-            var productsDomain = await repo.GetAllAsync();
-            var productsDto = mapper.Map<IEnumerable<ProductDto>>(productsDomain);
-            return Ok(productsDto);
+            return Ok(listCategories);
         }
+
+
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllProduct(
+      [FromQuery] string? search = null,
+      [FromQuery] string? sortBy = null,
+      [FromQuery] bool desc = false,
+      [FromQuery] int page = 1,
+      [FromQuery] int pageSize = 10)
+        {
+            var (productsDomain, totalItems) = await repo.GetAllAsync(search, sortBy, desc, page, pageSize);
+            var productsDto = mapper.Map<IEnumerable<ProductDto>>(productsDomain);
+
+            var response = new
+            {
+                TotalItems = totalItems,
+                Page = page,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling((double)totalItems / pageSize),
+                Products = productsDto
+            };
+
+            return Ok(response);
+        }
+
 
 
         [HttpGet("{id:int}")]
@@ -48,6 +76,14 @@ namespace MoeStoreAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateProduct([FromForm] ProductDto productDto)
         {
+
+            if (!listCategories.Contains(productDto.Category))
+            {
+                ModelState.AddModelError("Category", "Please select a valid category");
+                return BadRequest(ModelState);
+            }
+
+
             if (productDto.ImageFile == null)
             {
                 ModelState.AddModelError("ImageFile", "The Image File is required");
@@ -82,6 +118,99 @@ namespace MoeStoreAPI.Controllers
             productDto = mapper.Map<ProductDto>(productDomain);
 
             return Ok(productDto);
+        }
+
+
+
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> UpdateProduct([FromRoute] int id, [FromForm] ProductDto productDto)
+        {
+
+            if (!listCategories.Contains(productDto.Category))
+            {
+                ModelState.AddModelError("Category", "Please select a valid category");
+                return BadRequest(ModelState);
+            }
+
+
+            var existingProduct = await repo.GetByIdAsync(id);
+            if (existingProduct == null)
+            {
+                return NotFound();
+            }
+
+            string imageFileName = existingProduct.ImageFileName;
+
+            if (productDto.ImageFile != null)
+            {
+                // Ensure the images folder exists
+                string imagesFolder = Path.Combine(env.WebRootPath, "images", "products");
+                if (!Directory.Exists(imagesFolder))
+                {
+                    Directory.CreateDirectory(imagesFolder);
+                }
+
+                // Generate a new unique filename
+                string extension = Path.GetExtension(productDto.ImageFile.FileName);
+                imageFileName = $"{DateTime.UtcNow:yyyyMMddHHmmssfff}{extension}";
+
+                // Define full file path for saving
+                string filePath = Path.Combine(imagesFolder, imageFileName);
+
+                // Save the new image asynchronously
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await productDto.ImageFile.CopyToAsync(stream);
+                }
+
+                // Delete the old image if it exists
+                if (!string.IsNullOrWhiteSpace(existingProduct.ImageFileName))
+                {
+                    string oldImagePath = Path.Combine(env.WebRootPath, existingProduct.ImageFileName.TrimStart('/'));
+                    if (System.IO.File.Exists(oldImagePath))
+                    {
+                        System.IO.File.Delete(oldImagePath);
+                    }
+                }
+            }
+
+            // Update product fields without overwriting the entire object
+            mapper.Map(productDto, existingProduct);
+            existingProduct.ImageFileName = $"/images/products/{imageFileName}"; // Store relative path
+
+            await repo.UpdtadeProductAsync(id,existingProduct);
+
+            productDto = mapper.Map<ProductDto>(existingProduct);
+
+            return Ok(productDto);
+        }
+
+
+
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> DeleteProduct([FromRoute] int id)
+        {
+            var existingProduct = await repo.GetByIdAsync(id);
+            if (existingProduct == null)
+            {
+                return NotFound();
+            }
+
+            // Construct the absolute path of the image
+            if (!string.IsNullOrWhiteSpace(existingProduct.ImageFileName))
+            {
+                string imagePath = Path.Combine(env.WebRootPath, existingProduct.ImageFileName.TrimStart('/'));
+
+                if (System.IO.File.Exists(imagePath))
+                {
+                    System.IO.File.Delete(imagePath);
+                }
+            }
+
+            // Delete the product from the database
+            await repo.DeleteAsync(id);
+
+            return Ok(new { Message = "Product deleted successfully" });
         }
 
 

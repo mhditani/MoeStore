@@ -20,5 +20,8 @@ namespace MoeStore.Entities.DB
 
         public DbSet<Subject> Subjects { get; set; }
 
+        public DbSet<User> Users { get; set; }
+
+        public DbSet<PasswordReset> PasswordResets { get; set; }
     }
 }

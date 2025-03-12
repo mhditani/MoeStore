@@ -39,10 +39,37 @@ namespace MoeStore.Services.Repository
             return existingProduct;
         }
 
-        public async Task<List<Product>> GetAllAsync()
+        public async Task<(List<Product>, int)> GetAllAsync(string? search, string? sortBy, bool desc, int page = 1, int pageSize = 10)
         {
-            return await db.Products.ToListAsync();
+            var query = db.Products.AsQueryable();
+
+            // Search functionality
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(p => p.Name.Contains(search) ||
+                                         p.Brand.Contains(search) ||
+                                         p.Category.Contains(search));
+            }
+
+            // Sorting functionality
+            query = sortBy?.ToLower() switch
+            {
+                "name" => desc ? query.OrderByDescending(p => p.Name) : query.OrderBy(p => p.Name),
+                "price" => desc ? query.OrderByDescending(p => p.Price) : query.OrderBy(p => p.Price),
+                "category" => desc ? query.OrderByDescending(p => p.Category) : query.OrderBy(p => p.Category),
+                _ => desc ? query.OrderByDescending(p => p.Id) : query.OrderBy(p => p.Id)
+            };
+
+            // Pagination functionality
+            int totalItems = await query.CountAsync();
+            var products = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (products, totalItems);
         }
+       
 
         public async Task<Product?> GetByIdAsync(int id)
         {
