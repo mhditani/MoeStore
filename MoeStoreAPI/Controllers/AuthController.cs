@@ -237,28 +237,9 @@ namespace MoeStoreAPI.Controllers
         [HttpGet("UserProfile")]
         public  async Task<IActionResult> GetUserProfile()
         {
-            var identity = User.Identity as ClaimsIdentity;
-            if (identity == null)
-            {
-                return Unauthorized();
-            }
-            // read teh claim
-            var claim =  identity.Claims.FirstOrDefault(c => c.Type.ToLower() == "id");
-            if (claim == null)
-            {
-                return Unauthorized();
-            }
-            // convert the value of claim to integer
-            int id;
-            try
-            {
-                id = int.Parse(claim.Value);
-            }
-            catch (Exception)
-            {
-
-                return Unauthorized();
-            }
+            // call the function
+            int id = GetUsrId();
+            
             // Read The User From The Database
             var user = await db.Users.FindAsync(id);
             if (user == null)
@@ -282,9 +263,68 @@ namespace MoeStoreAPI.Controllers
         }
 
 
+        [Authorize]
+        [HttpPut("UpdateProfile")]
+        public async Task<IActionResult> UpdateProfile(UserProfileUpdateDto userProfileUpdateDto)
+        {
+            int id = GetUsrId();
+            var user = await db.Users.FindAsync(id);
+            if (user == null) 
+            {
+                return Unauthorized();
+            }
+
+             // update user profile
+             user.FirstName = userProfileUpdateDto.FirstName;
+            user.LastName = userProfileUpdateDto.LastName;
+            user.Email = userProfileUpdateDto.Email;
+            user.Phone = userProfileUpdateDto.Phone ?? "";
+            user.Address = userProfileUpdateDto.Address;
+
+            await db.SaveChangesAsync();
+
+            var userProfileDto = new UserProfileDto()
+            {
+                Id = user.Id,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                Phone = user.Phone,
+                Address = user.Address,
+                Role = user.Role,
+                CreatedAt = user.CreatedAt
+            };
+
+            return Ok(userProfileDto);
+        }
 
 
+        private int GetUsrId()
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            if (identity == null)
+            {
+                return 0;
+            }
+            // read teh claim
+            var claim = identity.Claims.FirstOrDefault(c => c.Type.ToLower() == "id");
+            if (claim == null)
+            {
+                return 0;
+            }
+            // convert the value of claim to integer
+            int id;
+            try
+            {
+                id = int.Parse(claim.Value);
+            }
+            catch (Exception)
+            {
 
+                return 0;
+            }
+            return id;
+        }
         //[Authorize]
         //[HttpGet("GetTokenClaims")]
         //public IActionResult GetTokenClaims()
