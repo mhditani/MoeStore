@@ -8,6 +8,7 @@ using MoeStore.Entities.DB;
 using MoeStore.Entities.Models;
 using MoeStore.Entities.Models.DTO;
 using MoeStore.Services;
+using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -298,6 +299,29 @@ namespace MoeStoreAPI.Controllers
             return Ok(userProfileDto);
         }
 
+
+        [Authorize]
+        [HttpPut("UpdatePassword")]
+        public async Task<IActionResult> UpdatePassword([Required, MinLength(8), MaxLength(20)] string password)
+        {
+            int id = GetUsrId();
+
+            var user = await db.Users.FindAsync(id);
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+            // encrypt password
+            var passwordHasher = new PasswordHasher<User>();
+            string encryptedPassword = passwordHasher.HashPassword(new User(), password);
+
+            // update user password
+            user.Password = encryptedPassword;
+            await db.SaveChangesAsync();
+
+            return Ok();
+
+        }
 
         private int GetUsrId()
         {
