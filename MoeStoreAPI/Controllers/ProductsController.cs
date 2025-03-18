@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MoeStore.Entities.Models;
@@ -72,7 +73,7 @@ namespace MoeStoreAPI.Controllers
         }
 
 
-
+        [Authorize(Roles = "admin")]
         [HttpPost]
         public async Task<IActionResult> CreateProduct([FromForm] ProductDto productDto)
         {
@@ -121,7 +122,7 @@ namespace MoeStoreAPI.Controllers
         }
 
 
-
+        [Authorize(Roles = "admin")]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateProduct([FromRoute] int id, [FromForm] ProductDto productDto)
         {
@@ -186,7 +187,7 @@ namespace MoeStoreAPI.Controllers
         }
 
 
-
+        [Authorize(Roles = "admin")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteProduct([FromRoute] int id)
         {

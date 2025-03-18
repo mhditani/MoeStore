@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MoeStore.Entities.DB;
@@ -37,6 +38,7 @@ namespace MoeStoreAPI.Controllers
             return Ok(listSubjects);
         }
 
+        [Authorize(Roles = "admin")]
         [HttpGet]
         public async Task<IActionResult> GetContacts(int? page = 1, int pageSize = 5)
         {
@@ -61,7 +63,7 @@ namespace MoeStoreAPI.Controllers
             return Ok(response);
         }
 
-
+        [Authorize(Roles = "admin")]
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetContact([FromRoute] int id)
         {
@@ -135,6 +137,7 @@ namespace MoeStoreAPI.Controllers
             return Ok(mapper.Map<ContactDto>(updatedContact));
         }
 
+        [Authorize(Roles = "admin")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteContact([FromRoute] int id)
         {
