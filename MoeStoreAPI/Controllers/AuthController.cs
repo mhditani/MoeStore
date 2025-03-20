@@ -239,7 +239,7 @@ namespace MoeStoreAPI.Controllers
         public  async Task<IActionResult> GetUserProfile()
         {
             // call the function
-            int id = GetUsrId();
+            int id = JwtReader.GetUserId(User);
             
             // Read The User From The Database
             var user = await db.Users.FindAsync(id);
@@ -268,7 +268,7 @@ namespace MoeStoreAPI.Controllers
         [HttpPut("UpdateProfile")]
         public async Task<IActionResult> UpdateProfile(UserProfileUpdateDto userProfileUpdateDto)
         {
-            int id = GetUsrId();
+            int id = JwtReader.GetUserId(User);
             var user = await db.Users.FindAsync(id);
             if (user == null) 
             {
@@ -304,7 +304,7 @@ namespace MoeStoreAPI.Controllers
         [HttpPut("UpdatePassword")]
         public async Task<IActionResult> UpdatePassword([Required, MinLength(8), MaxLength(20)] string password)
         {
-            int id = GetUsrId();
+            int id = JwtReader.GetUserId(User);
 
             var user = await db.Users.FindAsync(id);
             if (user == null)
@@ -323,32 +323,7 @@ namespace MoeStoreAPI.Controllers
 
         }
 
-        private int GetUsrId()
-        {
-            var identity = User.Identity as ClaimsIdentity;
-            if (identity == null)
-            {
-                return 0;
-            }
-            // read teh claim
-            var claim = identity.Claims.FirstOrDefault(c => c.Type.ToLower() == "id");
-            if (claim == null)
-            {
-                return 0;
-            }
-            // convert the value of claim to integer
-            int id;
-            try
-            {
-                id = int.Parse(claim.Value);
-            }
-            catch (Exception)
-            {
-
-                return 0;
-            }
-            return id;
-        }
+       
         //[Authorize]
         //[HttpGet("GetTokenClaims")]
         //public IActionResult GetTokenClaims()
